@@ -320,7 +320,7 @@ function playVideo(event, id) {
   if (!v) return;
 
   const ytUrl   = `https://www.youtube.com/watch?v=${v.videoId}`;
-  const embedUrl= `https://www.youtube.com/embed/${v.videoId}?autoplay=1&rel=0&enablejsapi=1`;
+  const embedUrl= `https://www.youtube-nocookie.com/embed/${v.videoId}?autoplay=1&rel=0&enablejsapi=1`;
   const thumb   = v.thumbnail||`https://img.youtube.com/vi/${v.videoId}/hqdefault.jpg`;
 
   document.getElementById('playerTitle').textContent     = v.title;
