@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>برواز — المحتوى المختار</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap');
+  :root {
+    --bg:#0d0d0d; --surface:#161616; --surface2:#1f1f1f; --border:#2a2a2a;
+    --gold:#c9a84c; --gold-dim:#8a6f2e; --gold-glow:rgba(201,168,76,0.12);
+    --text:#e8e8e8; --text-muted:#777; --text-dim:#444;
+    --danger:#c0392b; --radius:10px; --font:'IBM Plex Sans Arabic',sans-serif;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:var(--font); background:var(--bg); color:var(--text); min-height:100vh; direction:rtl; }
+
+  /* HEADER */
+  header { display:flex; align-items:center; justify-content:space-between; padding:0 2rem; height:60px; border-bottom:1px solid var(--border); background:var(--surface); position:sticky; top:0; z-index:100; }
+  .logo { font-size:1.4rem; font-weight:700; color:var(--gold); }
+  .logo span { color:var(--text-muted); font-weight:300; font-size:0.85rem; margin-right:8px; }
+  .header-actions { display:flex; gap:10px; align-items:center; }
+  .btn { padding:7px 16px; border-radius:6px; border:none; cursor:pointer; font-family:var(--font); font-size:0.85rem; font-weight:500; transition:all 0.2s; }
+  .btn-ghost { background:transparent; color:var(--text-muted); border:1px solid var(--border); }
+  .btn-ghost:hover { border-color:var(--gold); color:var(--gold); }
+  .btn-gold { background:var(--gold); color:#000; }
+  .btn-gold:hover { background:#d4b060; }
+  .btn-danger { background:var(--danger); color:#fff; }
+  .btn-danger:hover { background:#a93226; }
+
+  /* CAT NAV */
+  .cat-nav { display:flex; gap:6px; padding:14px 2rem; border-bottom:1px solid var(--border); background:var(--surface); overflow-x:auto; scrollbar-width:none; flex-wrap:wrap; }
+  .cat-btn { display:flex; align-items:center; gap:6px; padding:7px 16px; border-radius:20px; border:1px solid var(--border); background:transparent; color:var(--text-muted); font-family:var(--font); font-size:0.85rem; cursor:pointer; transition:all 0.2s; white-space:nowrap; }
+  .cat-btn:hover { border-color:var(--gold-dim); color:var(--text); }
+  .cat-btn.active { background:var(--gold-glow); border-color:var(--gold); color:var(--gold); }
+  .count-badge { background:var(--surface2); border:1px solid var(--border); color:var(--text-muted); font-size:0.75rem; padding:2px 8px; border-radius:10px; }
+
+  /* MAIN */
+  main { padding:2rem; max-width:1400px; margin:0 auto; }
+  .section-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:1.2rem; }
+  .section-title { font-size:1.1rem; font-weight:600; display:flex; align-items:center; gap:8px; }
+  .section-title .accent { width:3px; height:18px; background:var(--gold); border-radius:2px; }
+
+  /* VIDEO GRID */
+  .video-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1.2rem; }
+  .video-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; cursor:pointer; transition:all 0.2s; position:relative; }
+  .video-card:hover { border-color:var(--gold-dim); transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,0.4); }
+  .video-thumb { width:100%; aspect-ratio:16/9; object-fit:cover; display:block; background:var(--surface2); }
+  .thumb-placeholder { width:100%; aspect-ratio:16/9; background:var(--surface2); display:flex; align-items:center; justify-content:center; color:var(--text-dim); font-size:2rem; }
+  .play-overlay { position:absolute; top:0; left:0; width:100%; aspect-ratio:16/9; background:rgba(0,0,0,0.45); display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity 0.2s; }
+  .video-card:hover .play-overlay { opacity:1; }
+  .play-icon { width:52px; height:52px; background:var(--gold); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.3rem; color:#000; }
+  .video-info { padding:12px 14px 14px; }
+  .video-title { font-size:0.9rem; font-weight:600; line-height:1.45; margin-bottom:6px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .video-channel { font-size:0.78rem; color:var(--text-muted); margin-bottom:4px; }
+  .video-cat-tag { display:inline-flex; align-items:center; gap:4px; font-size:0.72rem; padding:2px 8px; border-radius:10px; background:var(--gold-glow); color:var(--gold); border:1px solid rgba(201,168,76,0.2); margin-top:6px; }
+  .card-admin-btn { position:absolute; top:8px; left:8px; background:rgba(0,0,0,0.7); border:1px solid var(--border); color:var(--text-muted); border-radius:6px; padding:4px 8px; font-size:0.75rem; cursor:pointer; opacity:0; transition:opacity 0.2s; font-family:var(--font); }
+  .video-card:hover .card-admin-btn { opacity:1; }
+  .card-admin-btn:hover { color:var(--gold); border-color:var(--gold); }
+
+  /* EMPTY */
+  .empty-state { text-align:center; padding:4rem 2rem; color:var(--text-muted); }
+  .empty-state .big { font-size:3rem; margin-bottom:1rem; }
+  .empty-state p { font-size:0.9rem; margin-bottom:1.5rem; }
+
+  /* MODAL BACKDROP */
+  .modal-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.88); z-index:200; align-items:center; justify-content:center; padding:1rem; }
+  .modal-backdrop.open { display:flex; }
+
+  /* PLAYER MODAL */
+  .player-modal { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); width:100%; max-width:920px; }
+  .modal-header { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid var(--border); }
+  .modal-title { font-size:0.9rem; font-weight:600; flex:1; margin-left:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .close-btn { background:transparent; border:none; color:var(--text-muted); font-size:1.3rem; cursor:pointer; flex-shrink:0; }
+  .close-btn:hover { color:var(--text); }
+
+  /* IFRAME WRAPPER */
+  .iframe-wrap { position:relative; aspect-ratio:16/9; background:#000; }
+  .iframe-wrap iframe { position:absolute; inset:0; width:100%; height:100%; border:none; }
+
+  /* FALLBACK (shown if iframe blocked) */
+  .iframe-fallback { display:none; position:absolute; inset:0; background:#0d0d0d; flex-direction:column; align-items:center; justify-content:center; gap:16px; text-align:center; padding:2rem; }
+  .iframe-fallback.show { display:flex; }
+  .fallback-bg { position:absolute; inset:0; object-fit:cover; width:100%; height:100%; opacity:0.15; }
+  .fallback-inner { position:relative; display:flex; flex-direction:column; align-items:center; gap:14px; }
+  .fallback-title { font-size:0.95rem; font-weight:600; }
+  .fallback-sub { font-size:0.82rem; color:var(--text-muted); }
+  .yt-btn { display:inline-flex; align-items:center; gap:8px; background:#ff0000; color:#fff; padding:11px 24px; border-radius:6px; border:none; font-family:var(--font); font-size:0.9rem; font-weight:600; cursor:pointer; text-decoration:none; transition:background 0.2s; }
+  .yt-btn:hover { background:#cc0000; }
+
+  .player-footer { padding:14px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .player-footer-info h3 { font-size:0.9rem; font-weight:600; }
+  .player-footer-info .ch { font-size:0.8rem; color:var(--text-muted); margin-top:3px; }
+  .yt-link { display:inline-flex; align-items:center; gap:6px; background:transparent; border:1px solid #ff0000; color:#ff0000; border-radius:6px; padding:7px 14px; font-size:0.8rem; font-family:var(--font); font-weight:600; cursor:pointer; text-decoration:none; white-space:nowrap; transition:all 0.2s; }
+  .yt-link:hover { background:#ff0000; color:#fff; }
+
+  /* ADMIN PANEL */
+  .admin-panel { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); width:100%; max-width:660px; max-height:90vh; overflow-y:auto; padding:24px; }
+  .admin-panel h2 { font-size:1.1rem; font-weight:700; color:var(--gold); margin-bottom:20px; padding-bottom:12px; border-bottom:1px solid var(--border); }
+  .form-group { margin-bottom:16px; }
+  label { display:block; font-size:0.82rem; color:var(--text-muted); margin-bottom:6px; font-weight:500; }
+  input, select, textarea { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:6px; color:var(--text); font-family:var(--font); font-size:0.9rem; padding:9px 12px; outline:none; transition:border-color 0.2s; direction:rtl; }
+  input:focus, select:focus, textarea:focus { border-color:var(--gold); }
+  textarea { resize:vertical; min-height:70px; }
+  select option { background:var(--surface2); }
+  .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .thumb-preview { width:100%; aspect-ratio:16/9; background:var(--surface2); border:1px solid var(--border); border-radius:6px; overflow:hidden; margin-top:8px; display:flex; align-items:center; justify-content:center; color:var(--text-dim); font-size:0.85rem; }
+  .thumb-preview img { width:100%; height:100%; object-fit:cover; }
+  .btn-row { display:flex; gap:10px; justify-content:flex-end; margin-top:20px; padding-top:16px; border-top:1px solid var(--border); }
+
+  /* API SETUP */
+  .setup-modal { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); width:100%; max-width:460px; padding:28px; text-align:center; }
+  .setup-modal .icon { font-size:2.5rem; margin-bottom:12px; }
+  .setup-modal h2 { font-size:1.1rem; margin-bottom:8px; }
+  .setup-modal p { font-size:0.85rem; color:var(--text-muted); margin-bottom:20px; line-height:1.6; }
+
+  /* API BAR */
+  .api-bar { background:var(--surface2); border-bottom:1px solid var(--border); padding:6px 2rem; font-size:0.78rem; display:flex; align-items:center; gap:8px; color:var(--text-muted); }
+  .status-dot { width:7px; height:7px; border-radius:50%; background:var(--text-dim); }
+  .status-dot.green { background:#27ae60; }
+  .status-dot.red { background:var(--danger); }
+
+  /* TOAST */
+  #toast { position:fixed; bottom:24px; right:24px; background:var(--surface2); border:1px solid var(--gold); border-radius:8px; padding:12px 18px; font-size:0.85rem; z-index:999; opacity:0; transform:translateY(8px); transition:all 0.3s; pointer-events:none; }
+  #toast.show { opacity:1; transform:translateY(0); }
+
+  /* SPINNER */
+  .spinner { width:20px; height:20px; border:2px solid var(--border); border-top-color:var(--gold); border-radius:50%; animation:spin 0.6s linear infinite; display:inline-block; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .loading-row { display:flex; align-items:center; gap:10px; font-size:0.85rem; color:var(--text-muted); justify-content:center; padding:1rem; }
+
+  @media(max-width:600px) {
+    main { padding:1rem; } header { padding:0 1rem; } .cat-nav { padding:10px 1rem; }
+    .form-row { grid-template-columns:1fr; } .video-grid { grid-template-columns:1fr; }
+    .player-footer { flex-direction:column; align-items:flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<div class="api-bar">
+  <div class="status-dot" id="statusDot"></div>
+  <span id="statusText">لم يتم ضبط مفتاح API</span>
+  <span style="margin-right:auto;color:var(--text-dim)">برواز v3</span>
+</div>
+
+<header>
+  <div class="logo">برواز <span>المحتوى المختار</span></div>
+  <div class="header-actions">
+    <button class="btn btn-ghost" onclick="openApiSetup()">🔑 مفتاح API</button>
+    <button class="btn btn-gold" onclick="openAddVideo()">+ إضافة فيديو</button>
+  </div>
+</header>
+
+<nav class="cat-nav" id="catNav"></nav>
+<main id="mainContent"></main>
+
+<div class="modal-backdrop" id="playerModal">
+  <div class="player-modal">
+    <div class="modal-header">
+      <button class="close-btn" onclick="closePlayer()">✕</button>
+      <span class="modal-title" id="playerTitle"></span>
+    </div>
+    <div class="iframe-wrap" id="iframeWrap">
+      <iframe id="playerFrame" src="" allowfullscreen
+        allow="autoplay; encrypted-media; picture-in-picture"
+        referrerpolicy="strict-origin-when-cross-origin"></iframe>
+      <div class="iframe-fallback" id="iframeFallback">
+        <img class="fallback-bg" id="fallbackBg" src="" alt="">
+        <div class="fallback-inner">
+          <div style="font-size:2rem">🚫</div>
+          <div class="fallback-title">هذا الفيديو لا يسمح بالتشغيل المدمج</div>
+          <div class="fallback-sub">صاحب القناة أغلق خاصية التضمين</div>
+          <a id="fallbackLink" href="#" target="_blank" rel="noopener" class="yt-btn">▶ شاهد على يوتيوب</a>
+        </div>
+      </div>
+    </div>
+    <div class="player-footer">
+      <div class="player-footer-info">
+        <h3 id="playerFullTitle"></h3>
+        <div class="ch" id="playerChannel"></div>
+      </div>
+      <a id="ytOpenLink" href="#" target="_blank" rel="noopener" class="yt-link">▶ فتح في يوتيوب</a>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="adminModal">
+  <div class="admin-panel">
+    <h2 id="adminTitle">➕ إضافة فيديو جديد</h2>
+    <div class="form-group">
+      <label>🔗 رابط يوتيوب أو معرّف الفيديو</label>
+      <input type="text" id="videoUrl" placeholder="https://www.youtube.com/watch?v=..." oninput="handleUrlInput()">
+    </div>
+    <div class="form-group">
+      <label>معاينة الصورة المصغّرة</label>
+      <div class="thumb-preview" id="thumbPreview">أدخل الرابط أولاً</div>
+    </div>
+    <div class="form-group">
+      <label>📝 العنوان</label>
+      <input type="text" id="videoTitle" placeholder="عنوان الفيديو">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>📁 التصنيف</label>
+        <select id="videoCategory"></select>
+      </div>
+      <div class="form-group">
+        <label>📺 القناة</label>
+        <input type="text" id="videoChannel" placeholder="اسم القناة">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>📄 وصف <span style="color:var(--text-dim)">(اختياري)</span></label>
+      <textarea id="videoDesc" placeholder="وصف مختصر..."></textarea>
+    </div>
+    <div id="fetchStatus" style="font-size:0.82rem;color:var(--gold);min-height:24px;"></div>
+    <div class="btn-row" id="adminBtnRow">
+      <button class="btn btn-ghost" onclick="closeAdmin()">إلغاء</button>
+      <button class="btn btn-ghost" onclick="fetchFromYoutube()" style="color:var(--gold);border-color:var(--gold-dim)">⬇ جلب من يوتيوب</button>
+      <button class="btn btn-gold" id="saveBtn" onclick="saveVideo()">حفظ</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="setupModal">
+  <div class="setup-modal">
+    <div class="icon">🔑</div>
+    <h2>مفتاح YouTube Data API v3</h2>
+    <p>يتيح لك الجلب التلقائي للعناوين والصور من يوتيوب عند إضافة فيديو.</p>
+    <div class="form-group" style="text-align:right">
+      <input type="text" id="apiKeyInput" placeholder="AIza..." style="direction:ltr">
+    </div>
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:8px">
+      <button class="btn btn-ghost" onclick="closeSetup()">إلغاء</button>
+      <button class="btn btn-gold" onclick="saveApiKey()">حفظ المفتاح</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const CATEGORIES = [
+  { id:'all',      label:'الكل',        icon:'🌐' },
+  { id:'tech',     label:'تقني',        icon:'💻' },
+  { id:'religion', label:'ديني',        icon:'📿' },
+  { id:'culture',  label:'ثقافي',       icon:'🎭' },
+  { id:'psych',    label:'علم النفس',   icon:'🧠' },
+  { id:'science',  label:'علوم',        icon:'🔬' },
+  { id:'history',  label:'تاريخ',       icon:'🏛️' },
+  { id:'dev',      label:'تطوير الذات', icon:'🌱' },
+  { id:'business', label:'أعمال',       icon:'📊' },
+];
+
+let videos     = JSON.parse(localStorage.getItem('birwaz_videos') || '[]');
+let apiKey     = localStorage.getItem('birwaz_api') || '';
+let currentCat = 'all';
+let editingId  = null;
+
+// ── INIT
+function init() { buildCatNav(); updateApiStatus(); renderContent(); }
+
+// ── CAT NAV
+function buildCatNav() {
+  document.getElementById('catNav').innerHTML = CATEGORIES.map(c => `
+    <button class="cat-btn ${c.id===currentCat?'active':''}" onclick="setCategory('${c.id}')">
+      ${c.icon} ${c.label}
+      <span class="count-badge">${c.id==='all'?videos.length:videos.filter(v=>v.category===c.id).length}</span>
+    </button>`).join('');
+}
+
+function setCategory(id) { currentCat=id; buildCatNav(); renderContent(); }
+
+// ── RENDER
+function renderContent() {
+  const main     = document.getElementById('mainContent');
+  const filtered = currentCat==='all' ? videos : videos.filter(v=>v.category===currentCat);
+  const cat      = CATEGORIES.find(c=>c.id===currentCat);
+  if (!filtered.length) {
+    main.innerHTML = `<div class="empty-state"><div class="big">${cat.icon}</div>
+      <p>لا توجد مقاطع في «${cat.label}» بعد</p>
+      <button class="btn btn-gold" onclick="openAddVideo()">+ أضف أول فيديو</button></div>`;
+    return;
+  }
+  main.innerHTML = `
+    <div class="section-header">
+      <div class="section-title"><div class="accent"></div>${cat.icon} ${cat.label}</div>
+      <span class="count-badge">${filtered.length} مقطع</span>
+    </div>
+    <div class="video-grid">${filtered.map(videoCard).join('')}</div>`;
+}
+
+function videoCard(v) {
+  const cat   = CATEGORIES.find(c=>c.id===v.category)||CATEGORIES[1];
+  const thumb = v.thumbnail||`https://img.youtube.com/vi/${v.videoId}/hqdefault.jpg`;
+  return `
+    <div class="video-card" onclick="playVideo(event, '${v.id}')">
+      <img class="video-thumb" src="${thumb}" alt="" loading="lazy"
+           onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      <div class="thumb-placeholder" style="display:none">🎬</div>
+      <div class="play-overlay"><div class="play-icon">▶</div></div>
+      <button class="card-admin-btn" onclick="event.stopPropagation();openEditVideo('${v.id}')">✏️ تعديل</button>
+      <div class="video-info">
+        <div class="video-title">${v.title}</div>
+        ${v.channel?`<div class="video-channel">📺 ${v.channel}</div>`:''}
+        <span class="video-cat-tag">${cat.icon} ${cat.label}</span>
+      </div>
+    </div>`;
+}
+
+// ── PLAYER
+function playVideo(event, id) {
+  if (event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  const v = videos.find(x=>x.id===id);
+  if (!v) return;
+
+  const ytUrl   = `https://www.youtube.com/watch?v=${v.videoId}`;
+  const embedUrl= `https://www.youtube.com/embed/${v.videoId}?autoplay=1&rel=0&enablejsapi=1`;
+  const thumb   = v.thumbnail||`https://img.youtube.com/vi/${v.videoId}/hqdefault.jpg`;
+
+  document.getElementById('playerTitle').textContent     = v.title;
+  document.getElementById('playerFullTitle').textContent = v.title;
+  document.getElementById('playerChannel').textContent   = v.channel ? '📺 '+v.channel : '';
+  document.getElementById('ytOpenLink').href             = ytUrl;
+  document.getElementById('fallbackLink').href           = ytUrl;
+  document.getElementById('fallbackBg').src              = thumb;
+
+  // reset fallback
+  document.getElementById('iframeFallback').classList.remove('show');
+  document.getElementById('playerFrame').src = embedUrl;
+
+  document.getElementById('playerModal').classList.add('open');
+
+  // detect embed block after short delay
+  setTimeout(checkEmbedBlocked, 3000);
+}
+
+function checkEmbedBlocked() {
+  const frame = document.getElementById('playerFrame');
+  try {
+    const doc = frame.contentDocument || frame.contentWindow.document;
+    if (!doc || doc.body.innerHTML === '') {
+      showFallback();
+    }
+  } catch(e) {
+    // تم الإمساك بـ SecurityError وهو المطلوب هنا لأن المتصفح يمنع قراءة البيانات من يوتيوب، مما يعني أن الفيديو يعمل
+  }
+}
+
+function showFallback() {
+  document.getElementById('playerFrame').src = '';
+  document.getElementById('iframeFallback').classList.add('show');
+}
+
+function closePlayer() {
+  document.getElementById('playerFrame').src = '';
+  document.getElementById('playerModal').classList.remove('open');
+}
+
+// ── ADMIN
+function populateCategorySelect() {
+  document.getElementById('videoCategory').innerHTML =
+    CATEGORIES.filter(c=>c.id!=='all').map(c=>`<option value="${c.id}">${c.icon} ${c.label}</option>`).join('');
+}
+
+function openAddVideo() {
+  editingId = null;
+  populateCategorySelect();
+  document.getElementById('adminTitle').textContent  = '➕ إضافة فيديو جديد';
+  document.getElementById('videoUrl').value          = '';
+  document.getElementById('videoTitle').value        = '';
+  document.getElementById('videoChannel').value      = '';
+  document.getElementById('videoDesc').value         = '';
+  document.getElementById('fetchStatus').textContent = '';
+  document.getElementById('thumbPreview').innerHTML  = 'أدخل الرابط أولاً';
+  document.getElementById('saveBtn').textContent     = 'حفظ';
+  const d = document.getElementById('adminBtnRow').querySelector('.del-btn');
+  if (d) d.remove();
+  document.getElementById('adminModal').classList.add('open');
+}
+
+function openEditVideo(id) {
+  const v = videos.find(x=>x.id===id);
+  if (!v) return;
+  editingId = id;
+  populateCategorySelect();
+  document.getElementById('adminTitle').textContent  = '✏️ تعديل الفيديو';
+  document.getElementById('videoUrl').value          = v.videoId;
+  document.getElementById('videoTitle').value        = v.title;
+  document.getElementById('videoChannel').value      = v.channel||'';
+  document.getElementById('videoDesc').value         = v.desc||'';
+  document.getElementById('videoCategory').value     = v.category;
+  document.getElementById('fetchStatus').textContent = '';
+  document.getElementById('saveBtn').textContent     = 'تحديث';
+  showThumb(v.videoId);
+  const row = document.getElementById('adminBtnRow');
+  if (!row.querySelector('.del-btn')) {
+    const d = document.createElement('button');
+    d.className='btn btn-danger del-btn'; d.textContent='🗑️ حذف';
+    d.onclick = deleteVideo;
+    row.insertBefore(d, row.firstChild);
+  }
+  document.getElementById('adminModal').classList.add('open');
+}
+
+function closeAdmin() { document.getElementById('adminModal').classList.remove('open'); }
+
+// ── URL + THUMB
+function extractVideoId(input) {
+  input = input.trim();
+  if (/^[a-zA-Z0-9_-]{11}$/.test(input)) return input;
+  let m = input.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);   if(m) return m[1];
+      m = input.match(/[?&]v=([a-zA-Z0-9_-]{11})/);        if(m) return m[1];
+      m = input.match(/shorts\/([a-zA-Z0-9_-]{11})/);       if(m) return m[1];
+  return null;
+}
+
+function handleUrlInput() {
+  const vid = extractVideoId(document.getElementById('videoUrl').value);
+  if (vid) showThumb(vid);
+  else document.getElementById('thumbPreview').innerHTML = 'أدخل الرابط أولاً';
+}
+
+function showThumb(vid) {
+  document.getElementById('thumbPreview').innerHTML =
+    `<img src="https://img.youtube.com/vi/${vid}/mqdefault.jpg" alt="">`;
+}
+
+// ── YOUTUBE FETCH
+async function fetchFromYoutube() {
+  if (!apiKey) { openApiSetup(); return; }
+  const vid = extractVideoId(document.getElementById('videoUrl').value);
+  if (!vid) { toast('⚠️ أدخل رابط يوتيوب صحيح'); return; }
+  const s = document.getElementById('fetchStatus');
+  s.innerHTML = '<div class="loading-row"><div class="spinner"></div> جاري الجلب...</div>';
+  try {
+    const res  = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${vid}&key=${apiKey}`);
+    const data = await res.json();
+    if (data.error) { s.textContent='❌ '+data.error.message; return; }
+    if (!data.items?.length) { s.textContent='⚠️ لم يُعثر على الفيديو'; return; }
+    const sn = data.items[0].snippet;
+    document.getElementById('videoTitle').value   = sn.title;
+    document.getElementById('videoChannel').value = sn.channelTitle;
+    const th = sn.thumbnails?.maxres?.url||sn.thumbnails?.high?.url||sn.thumbnails?.medium?.url||'';
+    if (th) {
+      document.getElementById('thumbPreview').innerHTML = `<img src="${th}">`;
+      document.getElementById('videoUrl').dataset.thumb = th;
+    }
+    document.getElementById('videoUrl').dataset.vid = vid;
+    s.innerHTML = '<span style="color:#27ae60">✅ تم الجلب بنجاح</span>';
+  } catch(e) { s.textContent='❌ '+e.message; }
+}
+
+// ── SAVE
+function saveVideo() {
+  const rawUrl  = document.getElementById('videoUrl').value.trim();
+  const videoId = extractVideoId(rawUrl)||rawUrl;
+  const title   = document.getElementById('videoTitle').value.trim();
+  const cat     = document.getElementById('videoCategory').value;
+  const channel = document.getElementById('videoChannel').value.trim();
+  const desc    = document.getElementById('videoDesc').value.trim();
+  const thumb = document.getElementById('videoUrl').dataset.thumb || `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+  if (!videoId||videoId.length<5) { toast('⚠️ أدخل رابط الفيديو'); return; }
+  if (!title) { toast('⚠️ أدخل العنوان'); return; }
+  if (editingId) {
+    const i = videos.findIndex(v=>v.id===editingId);
+    if (i!==-1) videos[i]={...videos[i],videoId,title,category:cat,channel,desc,thumbnail:thumb};
+    toast('✅ تم التحديث');
+  } else {
+    videos.unshift({id:Date.now().toString(),videoId,title,category:cat,channel,desc,thumbnail:thumb,addedAt:new Date().toISOString()});
+    toast('✅ تمت الإضافة');
+  }
+  persist(); closeAdmin(); buildCatNav(); renderContent();
+}
+
+function deleteVideo() {
+  if (!editingId||!confirm('هل أنت متأكد من الحذف؟')) return;
+  videos = videos.filter(v=>v.id!==editingId);
+  persist(); closeAdmin(); buildCatNav(); renderContent(); toast('🗑️ تم الحذف');
+}
+
+// ── API KEY
+function openApiSetup() { document.getElementById('apiKeyInput').value=apiKey; document.getElementById('setupModal').classList.add('open'); }
+function closeSetup()   { document.getElementById('setupModal').classList.remove('open'); }
+function saveApiKey()   {
+  const k=document.getElementById('apiKeyInput').value.trim();
+  if(!k){toast('⚠️ أدخل المفتاح');return;}
+  apiKey=k; localStorage.setItem('birwaz_api',k); updateApiStatus(); closeSetup(); toast('✅ تم حفظ المفتاح');
+}
+function updateApiStatus() {
+  document.getElementById('statusDot').className  = 'status-dot '+(apiKey?'green':'red');
+  document.getElementById('statusText').textContent = apiKey?'مفتاح API مفعّل':'مفتاح API غير محدد';
+}
+
+// ── PERSIST & TOAST
+function persist() { localStorage.setItem('birwaz_videos',JSON.stringify(videos)); }
+let _t;
+function toast(msg) {
+  const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show');
+  clearTimeout(_t); _t=setTimeout(()=>el.classList.remove('show'),3000);
+}
+
+// ── KEYBOARD & BACKDROP CLOSE
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){closePlayer();closeAdmin();closeSetup();} });
+['playerModal','adminModal','setupModal'].forEach(id=>{
+  document.getElementById(id).addEventListener('click',function(e){
+    if(e.target===this){ if(id==='playerModal')closePlayer(); else if(id==='adminModal')closeAdmin(); else closeSetup(); }
+  });
+});
+
+init();
+</script>
+</body>
+</html>
